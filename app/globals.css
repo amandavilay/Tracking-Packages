@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+body { @apply bg-stone-50 text-stone-900 antialiased; -webkit-tap-highlight-color: transparent; }
+.card { @apply bg-white rounded-2xl border border-stone-200/70 p-4; }
+.btn { @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-stone-900 text-white active:opacity-80 disabled:opacity-50; }
+.btn-ghost { @apply inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium border border-stone-300 text-stone-700 bg-white active:bg-stone-100; }
+.input { @apply w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-base outline-none focus:border-stone-500; }
+.label { @apply text-xs font-medium uppercase tracking-wide text-stone-500; }
+.chip { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+.h1 { @apply text-2xl font-semibold tracking-tight; }
+.h2 { @apply text-sm font-semibold uppercase tracking-wide text-stone-500 mt-6 mb-2; }

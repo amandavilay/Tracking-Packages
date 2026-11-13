@@ -1,0 +1,39 @@
+{
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@libsql/client": "^0.18.0",
+    "@prisma/adapter-libsql": "^6.19.3",
+    "@prisma/client": "^6.19.3",
+    "cheerio": "^1.2.0",
+    "googleapis": "^190.0.0",
+    "next": "^15.5.29",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "web-push": "^4.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/web-push": "^3.6.4",
+    "autoprefixer": "^10.6.2",
+    "postcss": "^8.5.32",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "name": "shopping-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "test": "node -e \"require('fs').rmSync('prisma/test.db',{force:true})\" && DATABASE_URL=file:./test.db prisma db push --skip-generate >/dev/null && DATABASE_URL=file:./test.db tsx --test tests/*.test.ts",
+    "vapid": "web-push generate-vapid-keys",
+    "job": "tsx scripts/run-job.ts"
+  }
+}

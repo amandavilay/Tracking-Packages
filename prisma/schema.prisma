@@ -1,0 +1,162 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Single user app: one row holds settings and encrypted Gmail tokens.
+model Settings {
+  id                 Int       @id @default(1)
+  palmCoastAddress   String    @default("")
+  boyntonAddress     String    @default("")
+  gmailEmail         String?
+  gmailTokensEnc     String?
+  lastScanAt         DateTime?
+  backfillDone       Boolean   @default(false)
+  digestEnabled      Boolean   @default(true)
+  digestHour         Int       @default(8) // Eastern time, 0-23
+  lastDigestDate     String?
+  notifyPriceDrop    Boolean   @default(true)
+  notifyReturnWindow Boolean   @default(true)
+  notifyDelivery     Boolean   @default(true)
+  notifyException    Boolean   @default(true)
+  notifyRefund       Boolean   @default(true)
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+model ProcessedEmail {
+  id         String   @id // Gmail message id
+  kind       String // order | shipping | return | refund | irrelevant | review
+  receivedAt DateTime
+  createdAt  DateTime @default(now())
+}
+
+model Order {
+  id              Int       @id @default(autoincrement())
+  retailer        String
+  orderNumber     String?
+  orderDate       DateTime
+  total           Float?
+  shippingAddress String?
+  home            String? // palm_coast | boynton_beach
+  emailId         String?
+  createdAt       DateTime  @default(now())
+  items           Item[]
+  packages        Package[]
+
+  @@unique([retailer, orderNumber])
+}
+
+model Item {
+  id               Int            @id @default(autoincrement())
+  orderId          Int?
+  order            Order?         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  name             String
+  retailer         String
+  variant          String? // size / color
+  pricePaid        Float?
+  productUrl       String?
+  imageUrl         String?
+  orderDate        DateTime
+  deliveredAt      DateTime?
+  // price tracking
+  trackUntil       DateTime?
+  currentPrice     Float?
+  priceStatus      String         @default("ok") // ok | blocked | removed
+  priceLastChecked DateTime?
+  adjustStatus     String? // requested | refunded
+  savedAmount      Float          @default(0)
+  dropNotifiedAt   Float? // price at which we last notified
+  // returns
+  returnDecision   String? // keeping | returning
+  windowNotified   Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  prices           PricePoint[]
+  returns          ReturnRequest[]
+}
+
+model PricePoint {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  price     Float
+  checkedAt DateTime @default(now())
+}
+
+model Package {
+  id               Int       @id @default(autoincrement())
+  trackingNumber   String    @unique
+  carrier          String?
+  retailer         String?
+  description      String?
+  orderId          Int?
+  order            Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  home             String?
+  status           String    @default("pending") // pending | in_transit | out_for_delivery | delivered | exception
+  lastLocation     String?
+  lastUpdate       DateTime?
+  estDelivery      DateTime?
+  deliveredAt      DateTime?
+  events           String    @default("[]") // JSON [{time, description, location}]
+  emailId          String?
+  archived         Boolean   @default(false)
+  isReturn         Boolean   @default(false)
+  registered       Boolean   @default(false)
+  claimStatus      String? // drafted | sent | resolved
+  notifiedStatus   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model ReturnRequest {
+  id              Int       @id @default(autoincrement())
+  itemId          Int?
+  item            Item?     @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  retailer        String
+  itemName        String
+  orderNumber     String?
+  refundExpected  Float?
+  trackingNumber  String?
+  carrier         String?
+  trackingStatus  String?
+  droppedOffAt    DateTime?
+  deliveredToRetailerAt DateTime?
+  refundStatus    String    @default("pending") // pending | received
+  refundAmount    Float?
+  refundedAt      DateTime?
+  emailId         String?
+  createdAt       DateTime  @default(now())
+}
+
+model RetailerPolicy {
+  retailer   String   @id // normalized lowercase
+  days       Int
+  basis      String   @default("delivery") // delivery | order
+  source     String   @default("ai") // ai | manual | default
+  url        String?
+  updatedAt  DateTime @updatedAt
+}
+
+model ReviewItem {
+  id        Int      @id @default(autoincrement())
+  emailId   String   @unique
+  subject   String
+  sender    String
+  snippet   String
+  kind      String
+  missing   String // comma list
+  data      String   @default("{}") // partially parsed JSON
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,9 @@
+{
+  "crons": [
+    { "path": "/api/cron/scan", "schedule": "0 * * * *" },
+    { "path": "/api/cron/tracking", "schedule": "20 */2 * * *" },
+    { "path": "/api/cron/prices", "schedule": "40 11,23 * * *" },
+    { "path": "/api/cron/returns", "schedule": "30 13 * * *" },
+    { "path": "/api/cron/digest", "schedule": "2 * * * *" }
+  ]
+}
