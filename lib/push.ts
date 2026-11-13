@@ -1,4 +1,4 @@
-import webpush from "web-push";
+import * as webpush from "web-push";
 import { db, getSettings } from "./db";
 
 export type NotifyType = "priceDrop" | "returnWindow" | "delivery" | "exception" | "refund" | "digest";
